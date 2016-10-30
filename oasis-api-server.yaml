@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: 2016-10-29T18:10:24Z
+  generation: 2
+  labels:
+    run: oasis-api-server
+  name: oasis-api-server
+  namespace: default
+  resourceVersion: "14987"
+  selfLink: /apis/extensions/v1beta1/namespaces/default/deployments/oasis-api-server
+  uid: f682e7c4-9e02-11e6-beda-023cd4af42d7
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: oasis-api-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: oasis-api-server
+    spec:
+      containers:
+      - image: coreoasis/oasis_api_server:R_1_6_0_6
+        imagePullPolicy: IfNotPresent
+        name: oasis-api-server
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  observedGeneration: 2
+  replicas: 1
+  updatedReplicas: 1

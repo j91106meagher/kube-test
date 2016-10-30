@@ -1,0 +1,197 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    run: oasis-mysql
+  name: oasis-mysql
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: oasis-mysql
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: oasis-mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_USER
+          value: celery
+        - name: MYSQL_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: celery
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        name: oasis-mysql
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      restartPolicy: Always
+      securityContext: {}
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    component: rabbitmq
+  name: rabbitmq-service
+spec:
+  ports:
+  - port: 5672
+  selector:
+    #app: taskQueue
+    component: rabbitmq
+
+----
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    #run: oasis-rabbit
+    component: rabbitmq
+  name: oasis-rabbit
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: rabbitmq
+      #run: oasis-rabbit
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        #run: oasis-rabbit
+        component: rabbitmq
+    spec:
+      containers:
+      - image: rabbitmq:3-management
+        imagePullPolicy: IfNotPresent
+        name: oasis-rabbit
+        ports:
+        - containerPort: 15672
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      restartPolicy: Always
+      #resources:
+      #    limits:
+      #      cpu: 100m
+----
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    run: oasis-api-server
+  name: oasis-api-server
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8001
+  selector:
+    run: oasis-api-server
+  sessionAffinity: None
+  type: ClusterIP
+----
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    run: oasis-api-server
+  name: oasis-api-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: oasis-api-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: oasis-api-server
+    spec:
+      containers:
+      - image: coreoasis/oasis_api_server:R_1_6_0_6
+        imagePullPolicy: IfNotPresent
+        name: oasis-api-server
+        volumeMounts:
+        - mountPath: /download
+          name: nfs1
+        - mountPath: /upload
+          name: nfs2
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+      restartPolicy: Always
+      volumes:
+      - name: nfs1
+        persistentVolumeClaim:
+          claimName: nfs1
+      - name: nfs2
+        persistentVolumeClaim:
+          claimName: nfs2
+
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    run: oasis-api-runner
+  name: oasis-api-runner
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: oasis-api-runner
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: oasis-api-runner
+    spec:
+      containers:
+      - image: coreoasis/api_runner:R_1_6_0_6
+        imagePullPolicy: IfNotPresent
+        name: oasis-api-runner
+        volumeMounts:
+        - mountPath: /download
+          name: nfs1
+        - mountPath: /upload
+          name: nfs2
+      restartPolicy: Always
+      volumes:
+      - name: nfs1
+        persistentVolumeClaim:
+          claimName: nfs1
+      - name: nfs2
+        persistentVolumeClaim:
+          claimName: nfs2
+

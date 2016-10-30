@@ -1,0 +1,25 @@
+kubectl create secret docker-registry dockerhub-secret --docker-username=jmeagher --docker-password=itsminty --docker-email=jonathan.meagher@gmail.com
+
+kubectl get serviceaccounts default -o yaml > ./sa.yaml
+
+#remove line revision line
+#imagePullSecrets:
+#- name: dockerhub-secret
+
+kubectl replace serviceaccount default -f ./default.yaml
+
+kubectl run oasis-api-server --image=coreoasis/oasis_api_server:R_1_6_0_6 --replicas=1 
+kubectl expose deployment oasis-api-server --port=80 --target-port=8001
+
+kubectl run oasis-rabbit --image=rabbitmq:3-management --replicas=1 --port=15672
+kubectl run oasis-api-runner --image=coreoasis/api_runner:R_1_6_0_6 --replicas=1  
+kubectl run oasis-mysql --image=mysql:5.7 --env="MYSQL_ROOT_PASSWORD=password" --env="MYSQL_USER=celery" --env="MYSQL_PASSWORD=password" --env="MYSQL_DATABASE=celery"
+
+kubectl run oasis-worker --image=coreoasis/model_execution_worker:R_1_6_0_6_2 --replicas=1 
+
+
+kubectl delete deployment,service my-nginx
+
+kubectl exec test-ebs -i -t -- bash -il
+
+

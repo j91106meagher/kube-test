@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: 2016-10-29T08:31:03Z
+  name: default
+  namespace: default
+  selfLink: /api/v1/namespaces/default/serviceaccounts/default
+  uid: 077690c2-9db2-11e6-beda-023cd4af42d7
+secrets:
+- name: default-token-yj18b
+imagePullSecrets:
+- name: dockerhub-secret
+
