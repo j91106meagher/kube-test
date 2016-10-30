@@ -2,6 +2,48 @@ kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
   labels:
+    run: oasis-worker
+  name: oasis-worker
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: oasis-worker
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: oasis-worker
+    spec:
+      containers:
+      - image: coreoasis/model_execution_worker:R_1_6_0_6_2
+        imagePullPolicy: IfNotPresent
+        name: oasis-worker
+        volumeMounts:
+        - mountPath: /download
+          name: nfs1
+        - mountPath: /upload
+          name: nfs2
+      restartPolicy: Always
+      volumes:
+      - name: nfs1
+        persistentVolumeClaim:
+          claimName: nfs1
+      - name: nfs2
+        persistentVolumeClaim:
+          claimName: nfs2
+
+
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
     run: oasis-mysql
   name: oasis-mysql
   namespace: default
